@@ -3,3 +3,6 @@ main
 
 ##files
 generation
+
+#vim files
+*.swp
