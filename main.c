@@ -7,12 +7,13 @@
 #include <time.h>
 #include <assert.h>
 #include <string.h>
+#include "input.h"
 
 #define DELAY 3
 #define MAXLINES 100
 #define MAXSLEEP 3
 #define TIMEOUT 10
-#define NB_SCRIPTS 10
+#define NB_SCRIPTS  3
 enum{QWOP, SLEEP, GOTO};
 enum{Q, W, O, P};
 
@@ -33,6 +34,7 @@ void randInit(FILE* fp)
 {
   int nbLines = rand()%MAXLINES;
   int letter;
+  fprintf(fp, "%d\n", nbLines);
   for(int i=0; i<nbLines; i++)
   {
     /* Format:
@@ -81,13 +83,18 @@ void randInit(FILE* fp)
 void run(FILE* fp, Display* display)
 {
     int nbLines;
-    rewind(fp);
-    fscanf(fp, "%d\n", &nbLines);
     char line[30];
     char *word, *context;
     int key;
     unsigned int keycode;
+
     time_t beginTime = time(NULL), currentTime = time(NULL);
+
+    rewind(fp);
+    fgets(line, 30, fp);
+    nbLines=atoi(line);
+
+    printf("Beginning algrithm (%d lines)\n", nbLines);
 
     for(int i=0; i<nbLines && difftime((currentTime = time(NULL)),beginTime)<TIMEOUT; i++)
     {
@@ -105,7 +112,7 @@ void run(FILE* fp, Display* display)
 	  printf("Goto %d\n", destLine);
 	  rewind(fp);
 	  int j;
-	  for(j=0; j<destLine-1; j++, fgets(line, 30, fp));
+	  for(j=0; j<destLine; j++, fgets(line, 30, fp));
 	  i=j;
 	}
 	else//QWOP
@@ -159,17 +166,17 @@ int main(int argc, char *argv[])
   srand(time(NULL));
 
   //files
-  FILE* fp[NB_SCRIPTS];
+  FILE* (fp [NB_SCRIPTS]);
   for(int i=0; i<NB_SCRIPTS; i++)
   {
-    fp[i] = fopen("generation", "w+");
+    char filename[15];
+    sprintf(filename, "generation%d", i);
+    fp[i] = fopen(filename, "w+");
     assert(fp[i] != NULL);
   }
   
   printf("Init done\n");
  
-  delayed_start(DELAY); 
-
   printf("Starting generation\n");
   //first generation
 
@@ -186,9 +193,20 @@ int main(int argc, char *argv[])
     //run generations
     for(int i=0; i<NB_SCRIPTS; i++)
     {
+      delayed_start(DELAY); 
       run(fp[i], display);
+      char answer[10];
+      printf("Enter algorithm %d mark: ", i);
+      readString(answer, 10);
+      mark[i]=atof(answer);
     }
 
+    for(int i=0; i<NB_SCRIPTS; i++)
+    {
+      printf("%d: %f meters\n", i, mark[i]);
+    }
+
+    getchar();
 
     //evolve
   }
