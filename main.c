@@ -12,6 +12,7 @@
 #define MAXLINES 100
 #define MAXSLEEP 3
 #define TIMEOUT 10
+#define NB_SCRIPTS 10
 enum{QWOP, SLEEP, GOTO};
 enum{Q, W, O, P};
 
@@ -28,29 +29,8 @@ void delayed_start(int delay)
   printf("Go !\n");
 }
 
-int main(int argc, char *argv[])
+void randInit(FILE* fp)
 {
-  printf("Init \n");
-
-  //X
-  Display *display;
-  display = XOpenDisplay(NULL);
-  assert(display != NULL);
-  unsigned int keycode;
-
-  //rand
-  srand(time(NULL));
-
-  //file
-  FILE* fp = fopen("generation", "w+");
-  assert(fp != NULL);
-  
-  printf("Init done\n");
- 
-  delayed_start(DELAY); 
-
-  printf("Starting generation\n");
-  //first generation
   int nbLines = rand()%MAXLINES;
   int letter;
   for(int i=0; i<nbLines; i++)
@@ -72,38 +52,41 @@ int main(int argc, char *argv[])
      {
        case QWOP:
         switch(rand()%4)
-	{
-	  case Q:
-	   letter='Q';
-	   break;
-	  case W:
-	   letter='W';
-	   break;
-	  case O:
-	   letter='O';
-	   break;
-	  case P:
-	   letter='P';
-	   break;
-	 }
-	 fprintf(fp, "%c %s\n", letter, rand()%2?"UP":"DOWN");
-	 break;
-	case SLEEP:
-	 fprintf(fp, "SLEEP %d\n", rand()%MAXSLEEP);
-	 break;
-	case GOTO:
-	 fprintf(fp, "GOTO %d\n", rand()%nbLines);
-	 break;
+        {
+          case Q:
+           letter='Q';
+           break;
+          case W:
+           letter='W';
+           break;
+          case O:
+           letter='O';
+           break;
+          case P:
+           letter='P';
+           break;
+         }
+         fprintf(fp, "%c %s\n", letter, rand()%2?"UP":"DOWN");
+         break;
+        case SLEEP:
+         fprintf(fp, "SLEEP %d\n", rand()%MAXSLEEP);
+         break;
+        case GOTO:
+         fprintf(fp, "GOTO %d\n", rand()%nbLines);
+         break;
      }
   }
-  //while(1)
-  {
-    //run generation
+}
+
+void run(FILE* fp, Display* display)
+{
+    int nbLines;
     rewind(fp);
     fscanf(fp, "%d\n", &nbLines);
     char line[30];
     char *word, *context;
     int key;
+    unsigned int keycode;
     time_t beginTime = time(NULL), currentTime = time(NULL);
 
     for(int i=0; i<nbLines && difftime((currentTime = time(NULL)),beginTime)<TIMEOUT; i++)
@@ -161,19 +144,61 @@ int main(int argc, char *argv[])
 
     if(difftime(currentTime,beginTime)>=TIMEOUT)
       printf("Timeout\n");
+}
+
+int main(int argc, char *argv[])
+{
+  printf("Init \n");
+
+  //X
+  Display *display;
+  display = XOpenDisplay(NULL);
+  assert(display != NULL);
+
+  //rand
+  srand(time(NULL));
+
+  //files
+  FILE* fp[NB_SCRIPTS];
+  for(int i=0; i<NB_SCRIPTS; i++)
+  {
+    fp[i] = fopen("generation", "w+");
+    assert(fp[i] != NULL);
+  }
+  
+  printf("Init done\n");
+ 
+  delayed_start(DELAY); 
+
+  printf("Starting generation\n");
+  //first generation
+
+  //for all files
+  for(int file=0; file<NB_SCRIPTS; file++)
+  {
+    randInit(fp[file]);
+  }
+
+  //Genetic improvement !
+  float mark[NB_SCRIPTS]={0}; //number of meters
+  while(1)
+  {
+    //run generations
+    for(int i=0; i<NB_SCRIPTS; i++)
+    {
+      run(fp[i], display);
+    }
+
 
     //evolve
   }
 
   printf("Nettoyage\n");
-  fclose(fp);
-  keycode = XKeysymToKeycode(display, XK_Q);
-  XTestFakeKeyEvent(display, keycode, True, 0);
-  XFlush(display);
 
-  sleep(1);
-  XTestFakeKeyEvent(display, keycode, False, 0);
-  XFlush(display);
+  for(int i=0; i<NB_SCRIPTS; i++)
+  {
+    fclose(fp[i]);
+  }
 
   return 0;
 }
