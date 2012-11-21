@@ -1,8 +1,9 @@
 ##binaries
 main
+*.o
 
 ##files
-generation
+generation*
 
 #vim files
 *.swp
