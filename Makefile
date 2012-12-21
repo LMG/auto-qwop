@@ -1,4 +1,8 @@
-CFLAGS := -Wall -std=c99 -D_POSIX_SOURCE
+CFLAGS := -Wall -std=c99 -D_POSIX_SOURCE -g
+
+default: all
+
+all: main
 
 main: input.o util.o algorithm.o constants.h main.c
 	gcc -o main main.c input.o util.o algorithm.o -lX11 -lXtst $(CFLAGS)
