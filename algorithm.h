@@ -8,6 +8,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <X11/extensions/XTest.h>
+#include <time.h>
+#include <string.h>
+#include <unistd.h>
+#include "constants.h"
 
 /**
  * Generates a random algorithm and writes it to a file.

@@ -5,5 +5,10 @@ main
 ##files
 generation*
 
-#vim files
+#doc
+doc/html
+doc/latex
+
+#editors files
 *.swp
+*~

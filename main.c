@@ -1,14 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/extensions/XTest.h>
-#include <time.h>
 #include <assert.h>
-#include <string.h>
 #include "input.h"
 #include "util.h"
 #include "constants.h"
+#include "algorithm.h"
 
 int sort(const void* x, const void* y)
 {
